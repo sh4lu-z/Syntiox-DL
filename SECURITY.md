@@ -15,9 +15,6 @@ If you discover a security vulnerability within Syntiox DL, please **DO NOT** op
 
 Instead, please report it directly to the maintainer by contacting:
 * **Email:** sh4lu.z@gmail.com
-* **GitHub:** Reach out privately or via <a href="https://sh4lu-z.vercel.app/">
-    <img src="https://img.shields.io/badge/More_details-000000?style=for-the-badge&logo=google-chrome&logoColor=white" alt="More details" />
-  </a>
 
 All security vulnerabilities will be promptly addressed, and a patch will be deployed as soon as possible.
 
