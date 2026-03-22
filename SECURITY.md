@@ -15,7 +15,7 @@ If you discover a security vulnerability within Syntiox DL, please **DO NOT** op
 
 Instead, please report it directly to the maintainer by contacting:
 * **Email:** sh4lu.z@gmail.com
-* **GitHub:** Reach out privately or via [Your Website/Social Link]
+* **GitHub:** Reach out privately or via 
 
 All security vulnerabilities will be promptly addressed, and a patch will be deployed as soon as possible.
 
