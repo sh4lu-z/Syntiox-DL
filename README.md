@@ -10,10 +10,17 @@
 ## ✨ Key Features
 
 * **Modern Dark Mode GUI**: Built with `CustomTkinter` for a seamless user experience.
+
+* **Organized Downloads**:  Automatically saves media to your system's default folders (Music/yt syntiox for Audio and Videos/yt syntiox for Videos) so you never lose your files.
+
 * **Smart Playability Filter**: Automatically filters and downloads `H.264 (AVC) + AAC (M4A)` formats, completely avoiding unplayable AV1/WebM formatting issues.
-* **Anti-Bot Bypass**: Uses Android client spoofing and custom User-Agents to bypass HTTP 403 / 429 and JavaScript runtime errors.
+
+* **Anti-Bot Bypass**: Uses Android client spoofing and custom User-Agents to bypass `HTTP 403 / 429` and JavaScript runtime errors.
+
 * **Intelligent Auto-Resume**: If your connection drops, it automatically retries and resumes from where it left off (up to 15 retries).
+
 * **Playlist Support**: Automatically detects playlists and fetches metadata seamlessly.
+
 * **Audio Extraction**: Easily download any video directly as a high-quality 192kbps MP3.
 
 ---
@@ -30,7 +37,7 @@ Before you begin, ensure you have met the following requirements:
 
 **Step 1: Clone the Repository**
 ```bash
-git clone [https://github.com/sh4lu-z/Syntiox-DL.git](https://github.com/sh4lu-z/Syntiox-DL.git)
+git clone https://github.com/sh4lu-z/Syntiox-DL.git
 cd Syntiox-DL
 ```
 
@@ -54,7 +61,20 @@ If you encounter the ERROR: ffmpeg is not installed message, follow this foolpro
 
 # 🚀 How to Run
 
-Simply execute the main script from your terminal:
+There are two ways to run the application:
+
+### Option 1: Using the Batch File (Recommended for Windows)
+
+1. Simply double-click the run.bat file located in the root folder.
+
+2. This will automatically open a command prompt window and start the application. If any errors occur, the window will stay open so you can read the error message.
+
+### Option 2: Using the Terminal
+
+1. Open your terminal or command prompt.
+2. Navigate to the project directory.
+3. Run the following command:
+
 ```bash
 python main.py
 ```
@@ -101,7 +121,7 @@ Issue: Terminal gets too messy with logs
 👨‍💻 Developed By
 Syntiox / sh4lu-z
 
-GitHub: @sh4lu-z
+GitHub: [![GitHub](https://icons8.com) sh4lu-z](https://github.com/sh4lu-z)
 
 Feel free to fork this repository, submit pull requests, or open issues if you find any bugs!     
 

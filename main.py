@@ -164,16 +164,18 @@ class SyntioxDLApp(ctk.CTk):
                 
                 try:
                     percent_float = float(percent_clean.replace('%', '')) / 100.0
-                    self.progress_bar.set(percent_float)
+                    # self.after පාවිච්චි කරලා Main Thread එකෙන් UI එක Update කිරීම
+                    self.after(0, lambda: self.progress_bar.set(percent_float))
                 except ValueError:
                     pass
                 
-                self.progress_text.configure(text=f"{percent_str} | Speed: {speed_str} | ETA: {eta_str}")
+                # Text එකත් Main Thread එකෙන් Update කිරීම
+                self.after(0, lambda: self.progress_text.configure(text=f"{percent_clean} | Speed: {speed_str} | ETA: {eta_str}"))
             except Exception:
                 pass
                 
         elif d['status'] == 'finished':
-            self.progress_text.configure(text="Download Complete! Merging files...", text_color="yellow")
+            self.after(0, lambda: self.progress_text.configure(text="Download Complete! Merging files...", text_color="yellow"))
 
     def start_download(self):
         # Run_Download_In_Separate_Thread
