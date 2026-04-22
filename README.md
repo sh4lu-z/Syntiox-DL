@@ -123,7 +123,7 @@ Issue: Terminal gets too messy with logs
 👨‍💻 Developed By
 Syntiox / sh4lu-z
 
-GitHub: [![GitHub](https://icons8.com) sh4lu-z](https://github.com/sh4lu-z)
+GitHub: [![GitHub](https://shields.io)](https://github.com/Sh4lu-Z)
 
 Feel free to fork this repository, submit pull requests, or open issues if you find any bugs!     
 
