@@ -7,6 +7,8 @@
 
 **Syntiox DL** is a highly advanced, professional, and visually appealing Video/Audio Downloader built with Python. It bypasses common bot-protections and ensures downloaded videos are universally playable across all devices.
 
+![SYNTIOX-DL](core/SYNTIOX-DL.gif)
+
 ## ✨ Key Features
 
 * **Modern Dark Mode GUI**: Built with `CustomTkinter` for a seamless user experience.
