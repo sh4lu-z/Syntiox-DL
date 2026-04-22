@@ -9,6 +9,12 @@
 
 ![SYNTIOX-DL](core/SYNTIOX-DL.gif)
 
+### 📥 Supported Sites
+yt-dlp supports over **1,000+ websites**, including YouTube, TikTok, Facebook, Instagram, and many more (100+).
+
+Check out the full list of supported sites here:
+👉 **[yt-dlp Supported Sites (Official List)](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)**
+
 ## ✨ Key Features
 
 * **Modern Dark Mode GUI**: Built with `CustomTkinter` for a seamless user experience.
