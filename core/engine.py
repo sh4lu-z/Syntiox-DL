@@ -97,14 +97,19 @@ class SyntioxEngine:
 
     def download(self, url, format_id, is_audio, progress_hook):
         self.is_cancelled = False
-        
-  
-        
         resolution_tag = "" if is_audio else f"_[{format_id}p]" if format_id != 'best' else "_[Best]"
+        user_home = os.path.expanduser('~')
+        if is_audio:
+            save_path = os.path.join(user_home, 'Music', 'Syntiox DL')
+        else:
+            save_path = os.path.join(user_home, 'Videos', 'Syntiox DL')
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)        
 
         ydl_opts = {
-            'outtmpl': f'{self.download_folder}/%(title)s{resolution_tag}.%(ext)s',
+            'outtmpl': f'{save_path}/%(title)s{resolution_tag}.%(ext)s',
             'progress_hooks': [progress_hook],
+            'live_from_start': True,
             'quiet': False,       
             'verbose': True,      
             'logger': SyntioxLogger(), 
@@ -129,11 +134,11 @@ class SyntioxEngine:
                 }],
             })
         else:
-            if format_id == 'best':
-          
+            if format_id == '480':
+                ydl_opts['format'] = 'bestvideo[height<=480]+bestaudio/best[height<=480]'
+            elif format_id == 'best':
                 ydl_opts['format'] = 'bestvideo[vcodec^=avc]+bestaudio[ext=m4a]/best[ext=mp4]/best'
             else:
-         
                 ydl_opts['format'] = f"{format_id}+bestaudio[ext=m4a]/{format_id}+bestaudio/best"
             
             ydl_opts['merge_output_format'] = 'mp4'
