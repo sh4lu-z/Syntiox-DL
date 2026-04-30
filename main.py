@@ -164,12 +164,12 @@ class SyntioxDLApp(ctk.CTk):
                 
                 try:
                     percent_float = float(percent_clean.replace('%', '')) / 100.0
-                    # self.after පාවිච්චි කරලා Main Thread එකෙන් UI එක Update කිරීම
                     self.after(0, lambda: self.progress_bar.set(percent_float))
                 except ValueError:
                     pass
                 
-                # Text එකත් Main Thread එකෙන් Update කිරීම
+  
+                
                 self.after(0, lambda: self.progress_text.configure(text=f"{percent_clean} | Speed: {speed_str} | ETA: {eta_str}"))
             except Exception:
                 pass
