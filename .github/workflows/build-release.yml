@@ -29,7 +29,7 @@ jobs:
       
       - name: Build EXE
         run: |
-          pyinstaller --noconsole --onefile --name "Syntiox-DL" --collect-all customtkinter --add-data "core;core" main.py
+          pyinstaller --noconsole --onefile --name "Syntiox-DL" --icon "assets/icon.ico" --collect-all customtkinter --add-data "core;core" --add-data "assets;assets" main.py
 
       - name: Upload EXE to Release
         uses: softprops/action-gh-release@v2

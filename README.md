@@ -18,30 +18,44 @@ Check out the full list of supported sites here:
 ## ✨ Key Features
 
 * **Modern Dark Mode GUI**: Built with `CustomTkinter` for a seamless user experience.
-
-* **Organized Downloads**:  Automatically saves media to your system's default folders (Music/yt syntiox for Audio and Videos/yt syntiox for Videos) so you never lose your files.
-
-* **Smart Playability Filter**: Automatically filters and downloads `H.264 (AVC) + AAC (M4A)` formats, completely avoiding unplayable AV1/WebM formatting issues.
-
-* **Anti-Bot Bypass**: Uses Android client spoofing and custom User-Agents to bypass `HTTP 403 / 429` and JavaScript runtime errors.
-
-* **Intelligent Auto-Resume**: If your connection drops, it automatically retries and resumes from where it left off (up to 15 retries).
-
+* **One-Click EXE**: No Python or Git needed — just download the `.exe` from Releases and run!
+* **Auto FFmpeg Install**: Automatically installs FFmpeg via Winget if not found on your system.
+* **Auto yt-dlp Update**: If a 403 error occurs, the app auto-updates its core to the latest version.
+* **Organized Downloads**: Saves to Music/Syntiox DL (Audio) or Videos/Syntiox DL (Video) by default.
+* **Custom Download Folder**: Choose any folder you want via the Browse button.
+* **Smart Playability Filter**: Downloads `H.264 (AVC) + AAC (M4A)` formats, avoiding unplayable AV1/WebM issues.
+* **Anti-Bot Bypass**: Uses Android client spoofing and custom User-Agents to bypass `HTTP 403 / 429` errors.
+* **Intelligent Auto-Resume**: Retries and resumes from where it left off (up to 15 retries).
 * **Playlist Support**: Automatically detects playlists and fetches metadata seamlessly.
-
-* **Audio Extraction**: Easily download any video directly as a high-quality 192kbps MP3.
-
----
-
-## ⚙️ Prerequisites
-
-Before you begin, ensure you have met the following requirements:
-1.  **Python 3.10** or higher installed.
-2.  **FFmpeg** (CRITICAL for merging video and audio).
+* **Audio Extraction**: Download as MP3 with quality selection (320kbps, 256kbps, 192kbps, 128kbps).
+* **MP3 Cover Art**: Automatically embeds the video thumbnail as album art in MP3 files.
+* **Cancel Button**: Stop any download mid-way with the Cancel button.
 
 ---
 
-## 🛠️ Installation & Setup
+## 📦 Quick Start (Recommended)
+
+**Just download and run — no installation needed!**
+
+1. Go to the [**Releases Page**](https://github.com/sh4lu-z/Syntiox-DL/releases/latest)
+2. Download `Syntiox-DL.exe`
+3. Double-click and enjoy!
+
+### ⚠️ Windows SmartScreen Warning
+
+When you run the `.exe` for the first time, Windows may show a **"Windows protected your PC"** warning. This is normal for unsigned apps and does **NOT** mean the app is harmful.
+
+**To bypass it:**
+1. Click **"More info"** on the warning dialog
+2. Click **"Run anyway"**
+
+> This happens because the app is not commercially code-signed. The source code is fully open — feel free to review it!
+
+---
+
+## 🛠️ Developer Setup (Optional)
+
+If you want to run from source code instead:
 
 **Step 1: Clone the Repository**
 ```bash
@@ -55,42 +69,14 @@ cd Syntiox-DL
 pip install -r requirements.txt
 ```
 
-(Required packages: `yt-dlp`, `customtkinter`, `Pillow`, `requests`)
-
-**Step 3: Setup FFmpeg (Crucial Step)**
-
-The application requires FFmpeg to merge high-quality video and audio tracks. 
-If you encounter the ERROR: ffmpeg is not installed message, follow this foolproof method:
-
-1. Download the latest FFmpeg build from `https://github.com/BtbN/FFmpeg-Builds/releases`
-2. Extract the `.zip` file.
-3. Open the `bin` folder and copy the `ffmpeg.exe` file.
-4. Paste `ffmpeg.exe` directly into the root folder of this project (in the same directory as main.py).
-
-# 🚀 How to Run
-
-There are two ways to run the application:
-
-### Option 1: Using the Batch File (Recommended for Windows)
-
-1. Simply double-click the run.bat file located in the root folder.
-
-2. This will automatically open a command prompt window and start the application. If any errors occur, the window will stay open so you can read the error message.
-
-### Option 2: Using the Terminal
-
-1. Open your terminal or command prompt.
-2. Navigate to the project directory.
-3. Run the following command:
-
+**Step 3: Run**
 ```bash
 python main.py
 ```
 
-1. Paste your Video or Playlist URL into the search bar.
-2. Click Analyze to fetch thumbnails, duration, and available qualities.
-3. Select your preferred resolution (or Audio Only).
-4. Click START DOWNLOAD.
+> **Note:** FFmpeg will be auto-installed via Winget on first use if not already present.
+
+---
 
 ## 💡 Advanced Configuration (Instagram / Private FB Videos)
 
@@ -111,31 +97,19 @@ you use to log into Instagram/Facebook).
 
 ### 🐛 Troubleshooting
 
-Issue: HTTP Error 403: Forbidden
+| Issue | Fix |
+|---|---|
+| **HTTP Error 403: Forbidden** | The app auto-updates yt-dlp when this happens. If it persists, try again after a few minutes. |
+| **Video won't play (corrupted)** | Ensure FFmpeg is installed. The app uses a Smart Filter to prevent AV1/WebM issues. |
+| **SmartScreen blocks the app** | Click "More info" → "Run anyway". See instructions above. |
+| **FFmpeg not found** | The app auto-installs via Winget. If Winget is unavailable, install manually from [ffmpeg.org](https://ffmpeg.org/download.html). |
 
-      Fix: Your yt-dlp version might be outdated. Run pip install --upgrade yt-dlp to fetch the latest patches.
+---
 
-Issue: Video downloads but shows "Cannot Play Video" (Audio only plays or corrupted)
+👨‍💻 **Developed By**: Syntiox / sh4lu-z
 
-      Fix: This happens if FFmpeg merges AV1 video with Opus audio. Syntiox DL uses a Smart Filter 
-      to prevent this. Ensure your core/engine.py is up-to-date with the repository.
-
-Issue: Terminal gets too messy with logs
-
-     Fix: The application uses an os.system('cls') command to keep the terminal clean. Ensure
-     you are running it in a standard command prompt or PowerShell.
-
-
-👨‍💻 Developed By
-Syntiox / sh4lu-z
-
-GitHub:
 <a href="https://github.com/Sh4lu-Z">
   <img src="https://githubusercontent.com" alt="GitHub" width="20" height="20" />
 </a>
 
-Feel free to fork this repository, submit pull requests, or open issues if you find any bugs!     
-
-
-
-
+Feel free to fork this repository, submit pull requests, or open issues if you find any bugs!

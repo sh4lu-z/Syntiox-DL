@@ -2,6 +2,9 @@ import customtkinter as ctk
 import threading
 import requests
 import re
+import os
+import sys
+import json
 from PIL import Image
 from io import BytesIO
 from core.engine import SyntioxEngine
@@ -10,8 +13,176 @@ from core.engine import SyntioxEngine
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
-# Pre-compiled ANSI escape regex (reused across all progress callbacks)
+# Pre-compiled ANSI escape regex
 ANSI_ESCAPE_RE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+
+APP_NAME = "Syntiox DL"
+APP_VERSION = "1.0.0"
+
+def get_app_data_dir():
+    appdata = os.environ.get('APPDATA', os.path.expanduser('~'))
+    path = os.path.join(appdata, APP_NAME)
+    os.makedirs(path, exist_ok=True)
+    return path
+
+def get_asset_path(filename):
+    if getattr(sys, 'frozen', False):
+        base = sys._MEIPASS
+    else:
+        base = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base, 'assets', filename)
+
+def load_settings():
+    settings_file = os.path.join(get_app_data_dir(), 'settings.json')
+    if os.path.exists(settings_file):
+        try:
+            with open(settings_file, 'r') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def save_settings(settings):
+    settings_file = os.path.join(get_app_data_dir(), 'settings.json')
+    try:
+        with open(settings_file, 'w') as f:
+            json.dump(settings, f, indent=2)
+    except Exception:
+        pass
+
+LICENSE_TEXT = """MIT License
+
+Copyright (c) 2026 shaluka gimhan
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE."""
+
+
+class FirstRunDialog(ctk.CTkToplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Welcome to Syntiox DL")
+        self.geometry("550x480")
+        self.resizable(False, False)
+        self.transient(parent)
+        self.grab_set()
+        
+        self.result = {"accepted": False, "desktop_shortcut": False, "start_menu": False}
+        
+        # Set icon
+        icon_path = get_asset_path('icon.ico')
+        if os.path.exists(icon_path):
+            self.after(200, lambda: self.iconbitmap(icon_path))
+        
+        # Title
+        ctk.CTkLabel(self, text="Welcome to Syntiox DL!", font=ctk.CTkFont(size=22, weight="bold")).pack(pady=(20, 5))
+        ctk.CTkLabel(self, text=f"Version {APP_VERSION}", text_color="gray60").pack(pady=(0, 15))
+        
+        # License
+        ctk.CTkLabel(self, text="License Agreement (MIT)", font=ctk.CTkFont(size=14, weight="bold")).pack(anchor="w", padx=25)
+        
+        self.license_box = ctk.CTkTextbox(self, width=490, height=200, font=ctk.CTkFont(size=11))
+        self.license_box.pack(padx=25, pady=(5, 15))
+        self.license_box.insert("1.0", LICENSE_TEXT)
+        self.license_box.configure(state="disabled")
+        
+        # Options
+        self.desktop_var = ctk.BooleanVar(value=True)
+        self.startmenu_var = ctk.BooleanVar(value=True)
+        
+        ctk.CTkCheckBox(self, text="Create Desktop Shortcut", variable=self.desktop_var).pack(anchor="w", padx=30, pady=3)
+        ctk.CTkCheckBox(self, text="Add to Start Menu (enables Windows Search)", variable=self.startmenu_var).pack(anchor="w", padx=30, pady=3)
+        
+        # Buttons
+        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        btn_frame.pack(pady=20)
+        
+        ctk.CTkButton(btn_frame, text="I Agree & Continue", width=200, height=40, font=ctk.CTkFont(size=14, weight="bold"), command=self.accept).pack(side="left", padx=10)
+        ctk.CTkButton(btn_frame, text="Decline & Exit", width=140, height=40, fg_color="gray30", hover_color="gray40", command=self.decline).pack(side="left")
+        
+        self.protocol("WM_DELETE_WINDOW", self.decline)
+        
+        # Center on parent
+        self.update_idletasks()
+        x = parent.winfo_x() + (parent.winfo_width() - self.winfo_width()) // 2
+        y = parent.winfo_y() + (parent.winfo_height() - self.winfo_height()) // 2
+        self.geometry(f"+{x}+{y}")
+
+    def accept(self):
+        self.result = {
+            "accepted": True,
+            "desktop_shortcut": self.desktop_var.get(),
+            "start_menu": self.startmenu_var.get()
+        }
+        self.destroy()
+    
+    def decline(self):
+        self.result = {"accepted": False, "desktop_shortcut": False, "start_menu": False}
+        self.destroy()
+
+
+def create_shortcut(target_path, shortcut_path, icon_path=None):
+    try:
+        import subprocess
+        ps_script = f'''
+$WshShell = New-Object -ComObject WScript.Shell
+$Shortcut = $WshShell.CreateShortcut("{shortcut_path}")
+$Shortcut.TargetPath = "{target_path}"
+$Shortcut.WorkingDirectory = "{os.path.dirname(target_path)}"
+'''
+        if icon_path and os.path.exists(icon_path):
+            ps_script += f'$Shortcut.IconLocation = "{icon_path}"\n'
+        ps_script += '$Shortcut.Save()'
+        
+        startupinfo = None
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        
+        subprocess.run(
+            ["powershell", "-NoProfile", "-Command", ps_script],
+            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            startupinfo=startupinfo
+        )
+        return True
+    except Exception:
+        return False
+
+
+def setup_shortcuts(desktop=True, start_menu=True):
+    if getattr(sys, 'frozen', False):
+        exe_path = sys.executable
+    else:
+        exe_path = os.path.abspath(sys.argv[0])
+    
+    icon_path = get_asset_path('icon.ico')
+    
+    if desktop:
+        desktop_dir = os.path.join(os.environ.get('USERPROFILE', ''), 'Desktop')
+        shortcut_path = os.path.join(desktop_dir, f'{APP_NAME}.lnk')
+        create_shortcut(exe_path, shortcut_path, icon_path)
+    
+    if start_menu:
+        start_menu_dir = os.path.join(os.environ.get('APPDATA', ''), 'Microsoft', 'Windows', 'Start Menu', 'Programs')
+        os.makedirs(start_menu_dir, exist_ok=True)
+        shortcut_path = os.path.join(start_menu_dir, f'{APP_NAME}.lnk')
+        create_shortcut(exe_path, shortcut_path, icon_path)
+
 
 class SyntioxDLApp(ctk.CTk):
     def __init__(self):
@@ -22,6 +193,20 @@ class SyntioxDLApp(ctk.CTk):
         self.geometry("850x650")
         self.resizable(False, False)
         
+        # Set window icon
+        icon_ico = get_asset_path('icon.ico')
+        icon_png = get_asset_path('icon.png')
+        
+        if os.path.exists(icon_ico):
+            self.after(200, lambda: self.iconbitmap(icon_ico))
+        
+        if os.path.exists(icon_png):
+            try:
+                self._icon_img = Image.open(icon_png)
+                self.iconphoto(False, ctk.CTkImage(light_image=self._icon_img, dark_image=self._icon_img, size=(32, 32))._light_image)
+            except Exception:
+                pass
+        
         # Init_Backend_Engine
         self.engine = SyntioxEngine()
         self.current_video_info = None
@@ -29,6 +214,31 @@ class SyntioxDLApp(ctk.CTk):
         
         self.setup_ui()
         self.check_system_requirements()
+        
+        # First run check
+        self.after(300, self.check_first_run)
+
+    def check_first_run(self):
+        settings = load_settings()
+        if not settings.get('license_accepted'):
+            dialog = FirstRunDialog(self)
+            self.wait_window(dialog)
+            
+            if not dialog.result['accepted']:
+                self.destroy()
+                return
+            
+            settings['license_accepted'] = True
+            settings['version'] = APP_VERSION
+            save_settings(settings)
+            
+            # Create shortcuts in background
+            if dialog.result['desktop_shortcut'] or dialog.result['start_menu']:
+                threading.Thread(
+                    target=setup_shortcuts,
+                    args=(dialog.result['desktop_shortcut'], dialog.result['start_menu']),
+                    daemon=True
+                ).start()
 
     def setup_ui(self):
         # Header_Section
@@ -127,9 +337,7 @@ class SyntioxDLApp(ctk.CTk):
             img_data = Image.open(BytesIO(response.content))
             img_data.thumbnail((250, 140))
             ctk_img = ctk.CTkImage(light_image=img_data, dark_image=img_data, size=(250, 140))
-            # Thread-safe UI update
             self.after(0, lambda: self.thumb_label.configure(image=ctk_img, text=""))
-            # Keep reference to prevent garbage collection
             self._thumb_ref = ctk_img
         except Exception:
             pass
@@ -184,7 +392,6 @@ class SyntioxDLApp(ctk.CTk):
             if info.get('type') == 'video':
                 self.status_label.configure(text="Type: Single Video | Status: Ready", text_color="green")
                 if info.get('thumb'):
-                    # Load thumbnail in background thread for thread safety
                     threading.Thread(target=self.load_thumbnail, args=(info['thumb'],), daemon=True).start()
                 
                 formats = info.get('formats', [])
@@ -233,7 +440,6 @@ class SyntioxDLApp(ctk.CTk):
                 except ValueError:
                     percent_float = None
                 
-                # Capture values for lambda closure
                 _pf = percent_float
                 _text = f"{percent_clean} | Speed: {speed_clean} | ETA: {eta_clean}"
                 
