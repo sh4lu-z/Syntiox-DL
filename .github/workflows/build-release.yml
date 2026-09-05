@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 
@@ -40,8 +42,8 @@ jobs:
       - name: Upload EXE to Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          name: "🚀 Syntiox DL - Latest Release"
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+          name: "🚀 Syntiox DL - ${{ github.ref_type == 'tag' && github.ref_name || 'Latest Release' }}"
           body: |
             ## 🌟 What's New in this Build!
             This is the latest auto-generated build of Syntiox DL.
