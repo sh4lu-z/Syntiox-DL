@@ -144,7 +144,11 @@ class SyntioxEngine:
                         'formats': formats
                     }
         except Exception as e:
-            return {"type": "error", "message": str(e)}
+            import traceback
+            error_log_path = os.path.join(os.path.expanduser('~'), 'syntiox_error.log')
+            with open(error_log_path, 'w') as f:
+                f.write(traceback.format_exc())
+            return {"type": "error", "message": f"{str(e)} (See {error_log_path})"}
 
     def _extract_formats(self, info):
         formats_dict = {}
