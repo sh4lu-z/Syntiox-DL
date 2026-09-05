@@ -18,7 +18,7 @@ Check out the full list of supported sites here:
 ## ✨ Key Features
 
 * **Modern Dark Mode GUI**: Built with `CustomTkinter` for a seamless user experience.
-* **One-Click EXE**: No Python or Git needed — just download the `.exe` from Releases and run!
+* **One-Click Installer**: Professional Setup Wizard with Start Menu and Desktop shortcuts.
 * **Auto FFmpeg Install**: Automatically installs FFmpeg via Winget if not found on your system.
 * **Auto yt-dlp Update**: If a 403 error occurs, the app auto-updates its core to the latest version.
 * **Organized Downloads**: Saves to Music/Syntiox DL (Audio) or Videos/Syntiox DL (Video) by default.
@@ -35,11 +35,12 @@ Check out the full list of supported sites here:
 
 ## 📦 Quick Start (Recommended)
 
-**Just download and run — no installation needed!**
-
 1. Go to the [**Releases Page**](https://github.com/sh4lu-z/Syntiox-DL/releases/latest)
-2. Download `Syntiox-DL.exe`
-3. Double-click and enjoy!
+2. Download `Syntiox-DL-Setup.exe`
+3. Run the installer and follow the setup wizard
+4. Launch the app from your Desktop or Start Menu!
+
+*(A portable version `Syntiox-DL.exe` is also available in the releases if you prefer not to install).*
 
 ### ⚠️ Windows SmartScreen Warning
 

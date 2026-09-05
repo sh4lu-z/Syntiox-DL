@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+
 
 permissions:
   contents: write
@@ -31,8 +33,14 @@ jobs:
         run: |
           pyinstaller --noconsole --onefile --name "Syntiox-DL" --icon "assets/icon.ico" --collect-all customtkinter --add-data "core;core" --add-data "assets;assets" main.py
 
+      - name: Build Installer (Inno Setup)
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+
       - name: Upload EXE to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/Syntiox-DL.exe
+          files: |
+            dist/Syntiox-DL.exe
+            dist/Syntiox-DL-Setup.exe
           generate_release_notes: true
