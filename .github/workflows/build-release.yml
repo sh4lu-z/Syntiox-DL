@@ -2,8 +2,8 @@ name: Build & Release EXE
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
   workflow_dispatch:
 
 
@@ -40,5 +40,17 @@ jobs:
       - name: Upload EXE to Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: latest
+          name: "🚀 Syntiox DL - Latest Release"
+          body: |
+            ## 🌟 What's New in this Build!
+            This is the latest auto-generated build of Syntiox DL.
+            
+            📝 **Latest Changes:**
+            ```text
+            ${{ github.event.head_commit.message }}
+            ```
+            
+            ---
+            *👇 Download `Syntiox DL.exe` below to install or update your app!*
           files: 'dist/Syntiox DL.exe'
-          generate_release_notes: true
