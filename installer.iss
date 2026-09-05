@@ -27,6 +27,7 @@ Source: "dist\Syntiox-DL.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\Syntiox DL"; Filename: "{app}\Syntiox-DL.exe"
+Name: "{autoprograms}\Uninstall Syntiox DL"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\Syntiox DL"; Filename: "{app}\Syntiox-DL.exe"; Tasks: desktopicon
 
 [Run]

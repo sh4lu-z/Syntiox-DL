@@ -17,7 +17,29 @@ class SyntioxLogger:
 
 class SyntioxEngine:
     def __init__(self):
+        self._sanitize_path()
         self.is_cancelled = False 
+        self.ffmpeg_path = self._find_ffmpeg()
+
+    def _sanitize_path(self):
+        # yt-dlp scans PATH for ffmpeg and JS runtimes (like node.js). 
+        # On Windows 11, os.path.realpath on certain WindowsApps/Python paths raises WinError 448.
+        # We proactively remove these bad paths from the environment PATH.
+        if os.name != 'nt': return
+        
+        original_path = os.environ.get('PATH', '')
+        clean_paths = []
+        for p in original_path.split(os.pathsep):
+            if not p: continue
+            try:
+                os.path.realpath(p)
+                clean_paths.append(p)
+            except OSError as e:
+                if getattr(e, 'winerror', None) == 448:
+                    pass # Ignore this path
+                else:
+                    clean_paths.append(p)
+        os.environ['PATH'] = os.pathsep.join(clean_paths) 
         self.ffmpeg_path = self._find_ffmpeg()
 
     def _get_startupinfo(self):
