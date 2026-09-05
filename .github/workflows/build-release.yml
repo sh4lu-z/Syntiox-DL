@@ -40,7 +40,5 @@ jobs:
       - name: Upload EXE to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/Syntiox-DL.exe
-            dist/Syntiox-DL-Setup.exe
+          files: 'dist/Syntiox DL.exe'
           generate_release_notes: true

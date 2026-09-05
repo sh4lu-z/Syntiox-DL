@@ -36,11 +36,9 @@ Check out the full list of supported sites here:
 ## 📦 Quick Start (Recommended)
 
 1. Go to the [**Releases Page**](https://github.com/sh4lu-z/Syntiox-DL/releases/latest)
-2. Download `Syntiox-DL-Setup.exe`
+2. Download `Syntiox DL.exe`
 3. Run the installer and follow the setup wizard
 4. Launch the app from your Desktop or Start Menu!
-
-*(A portable version `Syntiox-DL.exe` is also available in the releases if you prefer not to install).*
 
 ### ⚠️ Windows SmartScreen Warning
 
