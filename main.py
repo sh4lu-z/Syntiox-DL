@@ -7,10 +7,13 @@ import sys
 import json
 from PIL import Image
 from io import BytesIO
+from tkinter import messagebox
 from core.engine import SyntioxEngine
+from core.config import config
+from core.history import history
 
 # Setup_Global_App_Theme
-ctk.set_appearance_mode("Dark")
+ctk.set_appearance_mode(config.get("theme", "Dark"))
 ctk.set_default_color_theme("blue")
 
 # Pre-compiled ANSI escape regex
@@ -59,21 +62,48 @@ class SyntioxDLApp(ctk.CTk):
 
     def setup_ui(self):
         # Header_Section
-        self.header_label = ctk.CTkLabel(self, text="SYNTIOX DL", font=ctk.CTkFont(size=28, weight="bold"))
-        self.header_label.pack(pady=(20, 10))
+        self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.header_frame.pack(fill="x", padx=20, pady=(20, 10))
+        
+        # Spacer for centering
+        ctk.CTkLabel(self.header_frame, text="", width=100).pack(side="left")
+        
+        self.header_label = ctk.CTkLabel(self.header_frame, text="SYNTIOX DL", font=ctk.CTkFont(size=28, weight="bold"))
+        self.header_label.pack(side="left", expand=True)
+        
+        self.history_btn = ctk.CTkButton(self.header_frame, text="🕒 History", width=100, command=self.open_history)
+        self.history_btn.pack(side="right", padx=(0, 10))
+        
+        self.settings_btn = ctk.CTkButton(self.header_frame, text="⚙️ Settings", width=100, command=self.open_settings)
+        self.settings_btn.pack(side="right")
+        
+        # Container for main UI
+        self.main_container = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_container.pack(fill="both", expand=True)
         
         # Input_Section
-        self.input_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.input_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
         self.input_frame.pack(pady=10, padx=20, fill="x")
         
-        self.url_entry = ctk.CTkEntry(self.input_frame, placeholder_text="Enter YouTube or Playlist URL here...", width=600, height=40)
+        self.url_entry = ctk.CTkEntry(self.input_frame, placeholder_text="Enter YouTube or Playlist URL here...", width=550, height=40)
         self.url_entry.pack(side="left", padx=(0, 10))
+        
+        def paste_url():
+            try:
+                text = self.clipboard_get()
+                self.url_entry.delete(0, 'end')
+                self.url_entry.insert(0, text)
+            except Exception:
+                pass
+                
+        self.paste_btn = ctk.CTkButton(self.input_frame, text="📋", width=40, height=40, command=paste_url)
+        self.paste_btn.pack(side="left", padx=(0, 10))
         
         self.analyze_btn = ctk.CTkButton(self.input_frame, text="Analyze", width=120, height=40, command=self.start_analyze)
         self.analyze_btn.pack(side="left")
         
         # Info_Display_Section
-        self.info_frame = ctk.CTkFrame(self, height=200)
+        self.info_frame = ctk.CTkFrame(self.main_container, height=200)
         self.info_frame.pack(pady=15, padx=20, fill="x")
         self.info_frame.pack_propagate(False)
 
@@ -90,22 +120,26 @@ class SyntioxDLApp(ctk.CTk):
         self.status_label.pack(anchor="w")
         
         # Options_Section
-        self.options_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.options_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
         self.options_frame.pack(pady=10, padx=20, fill="x")
         
         self.format_var = ctk.StringVar(value="best")
         self.quality_dropdown = ctk.CTkOptionMenu(self.options_frame, variable=self.format_var, values=["Wait for analyze..."], width=200)
-        self.quality_dropdown.pack(side="left", padx=(0, 20))
+        self.quality_dropdown.pack(side="left", padx=(0, 10))
+        
+        self.ext_var = ctk.StringVar(value="mp4")
+        self.ext_dropdown = ctk.CTkOptionMenu(self.options_frame, variable=self.ext_var, values=["mp4", "mkv"], width=100)
+        self.ext_dropdown.pack(side="left", padx=(0, 20))
         
         self.audio_only_var = ctk.BooleanVar(value=False)
         self.audio_checkbox = ctk.CTkCheckBox(self.options_frame, text="Audio Only (MP3)", variable=self.audio_only_var, command=self.toggle_audio_mode)
         self.audio_checkbox.pack(side="left")
         
         # Path_Section
-        self.path_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.path_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
         self.path_frame.pack(pady=5, padx=20, fill="x")
         
-        self.path_var = ctk.StringVar(value="")
+        self.path_var = ctk.StringVar(value=config.get("default_video_path"))
         self.path_entry = ctk.CTkEntry(self.path_frame, textvariable=self.path_var, placeholder_text="Default Download Folder...", width=500)
         self.path_entry.pack(side="left", padx=(0, 10))
         
@@ -113,7 +147,7 @@ class SyntioxDLApp(ctk.CTk):
         self.browse_btn.pack(side="left")
         
         # Progress_Section
-        self.progress_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.progress_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
         self.progress_frame.pack(pady=10, padx=20, fill="x")
         
         self.progress_bar = ctk.CTkProgressBar(self.progress_frame, width=810)
@@ -124,14 +158,16 @@ class SyntioxDLApp(ctk.CTk):
         self.progress_text.pack()
         
         # Download_Button
-        self.btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.btn_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
         self.btn_frame.pack(pady=20)
 
-        self.download_btn = ctk.CTkButton(self.btn_frame, text="START DOWNLOAD", width=250, height=50, font=ctk.CTkFont(size=16, weight="bold"), state="disabled", command=self.start_download)
-        self.download_btn.pack(side="left", padx=10)
-
-        self.cancel_btn = ctk.CTkButton(self.btn_frame, text="CANCEL", width=120, height=50, font=ctk.CTkFont(size=16, weight="bold"), fg_color="red", hover_color="darkred", state="disabled", command=self.cancel_download)
-        self.cancel_btn.pack(side="left")
+        self.download_btn = ctk.CTkButton(self.btn_frame, text="START DOWNLOAD", width=250, height=50, font=ctk.CTkFont(size=16, weight="bold"), command=self.start_download)
+        
+        self.cancel_btn = ctk.CTkButton(self.btn_frame, text="CANCEL", width=120, height=50, font=ctk.CTkFont(size=16, weight="bold"), fg_color="red", hover_color="darkred", command=self.cancel_download)
+        
+        # Start hidden initially
+        self.download_btn.pack_forget()
+        self.cancel_btn.pack_forget()
 
     def check_system_requirements(self):
         if not self.engine.check_ffmpeg():
@@ -146,6 +182,124 @@ class SyntioxDLApp(ctk.CTk):
         self.engine.cancel()
         self.progress_text.configure(text="Cancelling... Please wait.", text_color="yellow")
         self.cancel_btn.configure(state="disabled")
+
+    def open_settings(self):
+        self.main_container.pack_forget()
+        self.settings_btn.configure(text="🔙 Back", command=self.close_settings)
+        
+        if hasattr(self, "settings_container") and self.settings_container.winfo_exists():
+            self.settings_container.pack(fill="both", expand=True)
+            return
+
+        self.settings_container = ctk.CTkFrame(self, fg_color="transparent")
+        self.settings_container.pack(fill="both", expand=True)
+
+        ctk.CTkLabel(self.settings_container, text="Settings", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(20, 10))
+
+        # Theme Toggle
+        theme_frame = ctk.CTkFrame(self.settings_container, fg_color="transparent")
+        theme_frame.pack(fill="x", padx=100, pady=10)
+        ctk.CTkLabel(theme_frame, text="Appearance Theme:").pack(side="left")
+        
+        theme_var = ctk.StringVar(value=config.get("theme", "Dark"))
+        def on_theme_change(choice):
+            def apply_theme():
+                ctk.set_appearance_mode(choice)
+                err = config.set("theme", choice)
+                if err: messagebox.showerror("Save Error", err)
+            self.after(50, apply_theme)
+            
+        theme_menu = ctk.CTkOptionMenu(theme_frame, variable=theme_var, values=["Dark", "Light", "System"], command=on_theme_change)
+        theme_menu.pack(side="right")
+
+        # Video Path
+        video_frame = ctk.CTkFrame(self.settings_container, fg_color="transparent")
+        video_frame.pack(fill="x", padx=100, pady=10)
+        ctk.CTkLabel(video_frame, text="Default Video Path:").pack(anchor="w")
+        video_path_var = ctk.StringVar(value=config.get("default_video_path"))
+        video_entry = ctk.CTkEntry(video_frame, textvariable=video_path_var, width=350)
+        video_entry.pack(side="left", padx=(0, 10))
+        def browse_video():
+            f = ctk.filedialog.askdirectory()
+            if f:
+                video_path_var.set(f)
+                err = config.set("default_video_path", f)
+                if err: messagebox.showerror("Save Error", err)
+                if not self.audio_only_var.get():
+                    self.path_var.set(f)
+        ctk.CTkButton(video_frame, text="Browse", width=80, command=browse_video).pack(side="left")
+
+        # Audio Path
+        audio_frame = ctk.CTkFrame(self.settings_container, fg_color="transparent")
+        audio_frame.pack(fill="x", padx=100, pady=10)
+        ctk.CTkLabel(audio_frame, text="Default Audio Path:").pack(anchor="w")
+        audio_path_var = ctk.StringVar(value=config.get("default_audio_path"))
+        audio_entry = ctk.CTkEntry(audio_frame, textvariable=audio_path_var, width=350)
+        audio_entry.pack(side="left", padx=(0, 10))
+        def browse_audio():
+            f = ctk.filedialog.askdirectory()
+            if f:
+                audio_path_var.set(f)
+                err = config.set("default_audio_path", f)
+                if err: messagebox.showerror("Save Error", err)
+                if self.audio_only_var.get():
+                    self.path_var.set(f)
+        ctk.CTkButton(audio_frame, text="Browse", width=80, command=browse_audio).pack(side="left")
+
+    def close_settings(self):
+        if hasattr(self, "settings_container") and self.settings_container.winfo_exists():
+            self.settings_container.pack_forget()
+        self.main_container.pack(fill="both", expand=True)
+        self.settings_btn.configure(text="⚙️ Settings", command=self.open_settings)
+
+    def open_history(self):
+        self.main_container.pack_forget()
+        self.history_btn.configure(text="🔙 Back", command=self.close_history)
+        self.settings_btn.configure(state="disabled")
+        
+        if hasattr(self, "history_container") and self.history_container.winfo_exists():
+            self.history_container.destroy() # Rebuild it to show fresh data
+            
+        self.history_container = ctk.CTkFrame(self, fg_color="transparent")
+        self.history_container.pack(fill="both", expand=True)
+        
+        header = ctk.CTkFrame(self.history_container, fg_color="transparent")
+        header.pack(fill="x", padx=20, pady=(20, 10))
+        ctk.CTkLabel(header, text="Download History", font=ctk.CTkFont(size=20, weight="bold")).pack(side="left")
+        
+        def clear_hist():
+            history.clear_history()
+            self.open_history() # Refresh UI
+            
+        ctk.CTkButton(header, text="Clear", width=60, fg_color="red", hover_color="darkred", command=clear_hist).pack(side="right")
+        
+        scroll = ctk.CTkScrollableFrame(self.history_container, fg_color="transparent")
+        scroll.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        hist_data = history.get_history()
+        if not hist_data:
+            ctk.CTkLabel(scroll, text="No download history found.", text_color="gray60").pack(pady=40)
+        else:
+            for item in hist_data:
+                item_frame = ctk.CTkFrame(scroll)
+                item_frame.pack(fill="x", pady=5)
+                
+                info = f"{item['title']} | {item['date']} | {item['type'].upper()} ({item['format'].upper()})"
+                ctk.CTkLabel(item_frame, text=info, justify="left", wraplength=500).pack(side="left", padx=10, pady=10)
+                
+                def open_folder(p=item['path']):
+                    if os.path.exists(p):
+                        if os.name == 'nt':
+                            os.startfile(p)
+                            
+                ctk.CTkButton(item_frame, text="📂 Open", width=60, command=open_folder).pack(side="right", padx=10)
+
+    def close_history(self):
+        if hasattr(self, "history_container") and self.history_container.winfo_exists():
+            self.history_container.pack_forget()
+        self.main_container.pack(fill="both", expand=True)
+        self.history_btn.configure(text="🕒 History", command=self.open_history)
+        self.settings_btn.configure(state="normal")
 
     def load_thumbnail(self, url):
         try:
@@ -223,7 +377,8 @@ class SyntioxDLApp(ctk.CTk):
                 self.quality_dropdown.set("Best Quality")
                 
             self.analyze_btn.configure(state="normal")
-            self.download_btn.configure(state="normal")
+            # Show download button
+            self.download_btn.pack(side="left", padx=10)
             
         self.after(0, update_ui)
 
@@ -231,8 +386,14 @@ class SyntioxDLApp(ctk.CTk):
         if self.audio_only_var.get():
             self.quality_dropdown.configure(state="normal", values=["Best Quality", "320kbps", "256kbps", "192kbps", "128kbps"])
             self.format_var.set("Best Quality")
+            self.ext_dropdown.configure(state="normal", values=["mp3", "wav", "flac"])
+            self.ext_var.set("mp3")
+            self.path_var.set(config.get("default_audio_path"))
         else:
             self.quality_dropdown.configure(state="normal")
+            self.ext_dropdown.configure(state="normal", values=["mp4", "mkv"])
+            self.ext_var.set("mp4")
+            self.path_var.set(config.get("default_video_path"))
             if self.current_video_info and self.current_video_info.get('type') == 'video':
                 formats = self.current_video_info.get('formats', [])
                 dropdown_values = ["Best Quality"] + [f['res'] for f in formats]
@@ -260,6 +421,12 @@ class SyntioxDLApp(ctk.CTk):
                 _pf = percent_float
                 _text = f"{percent_clean} | Speed: {speed_clean} | ETA: {eta_clean}"
                 
+                info_dict = d.get('info_dict', {})
+                p_index = info_dict.get('playlist_index')
+                p_count = info_dict.get('playlist_count') or info_dict.get('n_entries')
+                if p_index and p_count:
+                    _text = f"[Video {p_index} of {p_count}] " + _text
+                
                 if _pf is not None:
                     self.after(0, lambda: self.progress_bar.set(_pf))
                 self.after(0, lambda: self.progress_text.configure(text=_text))
@@ -276,6 +443,7 @@ class SyntioxDLApp(ctk.CTk):
             
         is_audio = self.audio_only_var.get()
         selected_res = self.format_var.get()
+        selected_ext = self.ext_var.get()
         custom_path = self.path_var.get().strip() or None
         
         format_id = 'best'
@@ -291,17 +459,21 @@ class SyntioxDLApp(ctk.CTk):
                         format_id = f['id']
                         break
                     
-        self.download_btn.configure(state="disabled")
         self.analyze_btn.configure(state="disabled")
+        self.download_btn.pack_forget()
+        self.cancel_btn.pack(side="left")
         self.cancel_btn.configure(state="normal")
         self.progress_bar.set(0)
         self.progress_text.configure(text="Starting download...", text_color="gray60")
         
-        self._download_thread = threading.Thread(target=self.process_download, args=(url, format_id, is_audio, custom_path, audio_quality), daemon=True)
+        self._download_thread = threading.Thread(target=self.process_download, args=(url, format_id, is_audio, custom_path, audio_quality, selected_ext), daemon=True)
         self._download_thread.start()
 
-    def process_download(self, url, format_id, is_audio, custom_path, audio_quality):
-        result = self.engine.download(url, format_id, is_audio, self.progress_hook, custom_path=custom_path, audio_quality=audio_quality)
+    def process_download(self, url, format_id, is_audio, custom_path, audio_quality, selected_ext):
+        if is_audio:
+            result = self.engine.download(url, format_id, is_audio, self.progress_hook, custom_path=custom_path, audio_quality=audio_quality, audio_format=selected_ext)
+        else:
+            result = self.engine.download(url, format_id, is_audio, self.progress_hook, custom_path=custom_path, audio_quality=audio_quality, video_format=selected_ext)
         
         # Auto-update yt-dlp on 403 errors
         if result.get("status") != "success" and "403" in result.get('message', ''):
@@ -318,6 +490,13 @@ class SyntioxDLApp(ctk.CTk):
                 self.progress_text.configure(text="All Tasks Completed Successfully!", text_color="green")
                 self.status_label.configure(text="Status: Download Finished", text_color="green")
                 self.progress_bar.set(1.0)
+                
+                # Add to history
+                title = self.current_video_info.get('title', 'Unknown') if self.current_video_info else 'Unknown'
+                media_type = "audio" if is_audio else "video"
+                save_path = result.get('save_path', custom_path or config.get(f"default_{media_type}_path"))
+                history.add_item(title, media_type, selected_ext, save_path)
+                
             else:
                 msg = result.get('message', '')
                 if "Cancelled by user" in msg:
@@ -335,9 +514,10 @@ class SyntioxDLApp(ctk.CTk):
         self.after(0, update_ui)
 
     def _reset_buttons(self):
-        self.download_btn.configure(state="normal")
         self.analyze_btn.configure(state="normal")
-        self.cancel_btn.configure(state="disabled")
+        self.cancel_btn.pack_forget()
+        self.download_btn.pack(side="left", padx=10)
+        self.download_btn.configure(state="normal")
 
 if __name__ == "__main__":
     app = SyntioxDLApp()

@@ -4,6 +4,7 @@ import shutil
 import glob
 import sys
 import subprocess
+from core.config import config
 
 class SyntioxLogger:
     def debug(self, msg):
@@ -197,26 +198,24 @@ class SyntioxEngine:
         sorted_formats = sorted(formats_dict.values(), key=lambda x: int(x['res'].replace('p','')), reverse=True)
         return [{'id': f['id'], 'res': f['res'], 'ext': f['ext']} for f in sorted_formats]
 
-    def download(self, url, format_id, is_audio, progress_hook, custom_path=None, audio_quality="320"):
-        self.is_cancelled = False
-        
-        # Build a human-readable tag for the filename
+    def download(self, url, format_id='best', is_audio=False, progress_hook=None, custom_path=None, audio_quality='320', audio_format='mp3', video_format='mp4'):
+        if self.is_cancelled:
+            return {"status": "error", "message": "Cancelled"}
+            
         if is_audio:
             resolution_tag = f"_[{audio_quality}kbps]"
         elif format_id == 'best':
             resolution_tag = "_[Best]"
         else:
-            # format_id is an internal ID like "614", find the matching resolution label
             resolution_tag = "_[Best]"
         
         if custom_path:
             save_path = custom_path
         else:
-            user_home = os.path.expanduser('~')
             if is_audio:
-                save_path = os.path.join(user_home, 'Music', 'Syntiox DL')
+                save_path = config.get("default_audio_path", os.path.join(os.path.expanduser('~'), 'Music', 'Syntiox DL'))
             else:
-                save_path = os.path.join(user_home, 'Videos', 'Syntiox DL')
+                save_path = config.get("default_video_path", os.path.join(os.path.expanduser('~'), 'Videos', 'Syntiox DL'))
                 
         os.makedirs(save_path, exist_ok=True)
 
@@ -253,7 +252,7 @@ class SyntioxEngine:
                 'postprocessors': [
                     {
                         'key': 'FFmpegExtractAudio',
-                        'preferredcodec': 'mp3',
+                        'preferredcodec': audio_format,
                         'preferredquality': audio_quality, 
                     },
                     {
@@ -267,11 +266,11 @@ class SyntioxEngine:
             else:
                 ydl_opts['format'] = f"{format_id}+bestaudio[ext=m4a]/{format_id}+bestaudio/best"
             
-            ydl_opts['merge_output_format'] = 'mp4'
+            ydl_opts['merge_output_format'] = video_format
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
-            return {"status": "success"}
+            return {"status": "success", "message": "Download complete", "save_path": save_path}
         except Exception as e:
             return {"status": "error", "message": str(e)}
