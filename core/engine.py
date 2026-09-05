@@ -17,12 +17,8 @@ class SyntioxLogger:
 
 class SyntioxEngine:
     def __init__(self):
-        self.download_folder = "downloads"
         self.is_cancelled = False 
         self.ffmpeg_path = self._find_ffmpeg()
-        
-        if not os.path.exists(self.download_folder):
-            os.makedirs(self.download_folder, exist_ok=True)
 
     def _get_startupinfo(self):
         if os.name == 'nt':
