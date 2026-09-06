@@ -158,13 +158,15 @@ class SyntioxEngine:
                     }
                 else:
                     formats = self._extract_formats(info)
+                    audio_formats = self._extract_audio_formats(info)
                     return {
-                        'type': 'video', 
-                        'title': info.get('title', 'Unknown'), 
-                        'thumb': info.get('thumbnail'), 
+                        'type': 'video',
+                        'title': info.get('title', 'Unknown'),
+                        'thumb': info.get('thumbnail'),
                         'duration': info.get('duration'),
                         'uploader': info.get('uploader'),
-                        'formats': formats
+                        'formats': formats,
+                        'audio_formats': audio_formats
                     }
         except Exception as e:
             import traceback
@@ -198,14 +200,43 @@ class SyntioxEngine:
         sorted_formats = sorted(formats_dict.values(), key=lambda x: int(x['res'].replace('p','')), reverse=True)
         return [{'id': f['id'], 'res': f['res'], 'ext': f['ext']} for f in sorted_formats]
 
+    def _extract_audio_formats(self, info):
+        """Extract real audio-only streams from the server (actual bitrates)."""
+        seen = {}
+        for f in info.get('formats', []):
+            vcodec = f.get('vcodec', '')
+            acodec = f.get('acodec', '')
+            abr = f.get('abr')
+            format_id = f.get('format_id')
+            ext = f.get('ext', '')
+
+            # Audio-only streams with a known bitrate
+            is_audio_only = (not vcodec or vcodec == 'none') and acodec and acodec != 'none'
+            if not is_audio_only or not abr:
+                continue
+
+            abr_int = int(round(abr))
+            # Prefer m4a over webm for the same bitrate (better compatibility)
+            score = 10 if ext == 'm4a' else 0
+
+            if abr_int not in seen or score > seen[abr_int]['score']:
+                seen[abr_int] = {
+                    'id': format_id,
+                    'abr': abr_int,
+                    'ext': ext,
+                    'label': f"{abr_int} kbps ({ext.upper()})",
+                    'score': score
+                }
+
+        sorted_audio = sorted(seen.values(), key=lambda x: x['abr'], reverse=True)
+        return [{'id': f['id'], 'abr': f['abr'], 'ext': f['ext'], 'label': f['label']} for f in sorted_audio]
+
     def download(self, url, format_id='best', is_audio=False, progress_hook=None, custom_path=None, audio_quality='320', audio_format='mp3', video_format='mp4'):
         if self.is_cancelled:
             return {"status": "error", "message": "Cancelled"}
             
         if is_audio:
             resolution_tag = f"_[{audio_quality}kbps]"
-        elif format_id == 'best':
-            resolution_tag = "_[Best]"
         else:
             resolution_tag = "_[Best]"
         
@@ -246,8 +277,13 @@ class SyntioxEngine:
             ydl_opts['ffmpeg_location'] = self.ffmpeg_path
 
         if is_audio:
+            # Use the specific server audio format_id if user picked one, else fallback to bestaudio
+            if format_id and format_id != 'best':
+                audio_fmt_str = f"{format_id}/bestaudio[ext=m4a]/bestaudio/best"
+            else:
+                audio_fmt_str = 'bestaudio[ext=m4a]/bestaudio/best'
             ydl_opts.update({
-                'format': 'bestaudio[ext=m4a]/bestaudio/best',
+                'format': audio_fmt_str,
                 'writethumbnail': True,
                 'postprocessors': [
                     {
