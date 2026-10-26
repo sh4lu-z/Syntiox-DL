@@ -1,3 +1,12 @@
+# ⚠️ Repository Moved
+
+> **Important:** This repository has moved to **[Syntiox/Vynex-Desktop](https://github.com/Syntiox/Vynex-Desktop)**.
+> All future development, issues, and releases will be maintained there.
+>
+> 👉 **New Repository:** [https://github.com/Syntiox/Vynex-Desktop](https://github.com/Syntiox/Vynex-Desktop)
+
+---
+
 # 🚀 Syntiox DL - Pro Video Downloader
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
